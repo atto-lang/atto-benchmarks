@@ -9,6 +9,37 @@ import threading
 import urllib.parse
 import urllib.request
 
+MAX_RESPONSE_BYTES = 16384
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise AssertionError(f"unexpected redirect: {code}")
+
+
+OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+
+
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def reject_constant(value):
+    raise ValueError(f"invalid JSON constant: {value}")
+
+
+def strict_json(raw):
+    if len(raw) > MAX_RESPONSE_BYTES:
+        raise ValueError("response exceeds limit")
+    return json.loads(raw.decode("utf-8", errors="strict"),
+                      object_pairs_hook=unique_object, parse_constant=reject_constant)
+
+
 PREFIX = "/api/v1/periodic-table/"
 SYMBOLS = ("H", "He", "Na", "Fe")
 ELEMENTS = {
@@ -42,16 +73,21 @@ class Fixture(http.server.BaseHTTPRequestHandler):
 
 def check_one(base, route, symbol, expected):
     url = base + PREFIX + route + "?" + urllib.parse.urlencode({"symbol": symbol})
-    with urllib.request.urlopen(url, timeout=5) as response:
+    with OPENER.open(url, timeout=5) as response:
         if response.status != 200 or response.headers.get_content_type() != "application/json":
             raise AssertionError(f"unexpected HTTP response: {url}")
-        actual = json.load(response)
+        actual = strict_json(response.read(MAX_RESPONSE_BYTES + 1))
     # Canonical JSON equality also distinguishes bools and numbers.
     if json.dumps(actual, sort_keys=True) != json.dumps(expected, sort_keys=True):
         raise AssertionError(f"{url}: expected {expected!r}, got {actual!r}")
 
 
 def run(base, source_port):
+    parsed = urllib.parse.urlsplit(base)
+    if (parsed.scheme != "http" or parsed.hostname != "127.0.0.1"
+            or parsed.username or parsed.password or parsed.query or parsed.fragment
+            or parsed.path not in ("", "/")):
+        raise ValueError("probe requires a literal loopback HTTP base URL")
     # Use a synthetic source to prove request-time I/O; never use it for scores.
     with http.server.ThreadingHTTPServer(("127.0.0.1", source_port), Fixture) as source:
         source.lock = threading.Lock()
