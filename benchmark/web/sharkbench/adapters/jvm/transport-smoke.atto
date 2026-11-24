@@ -55,7 +55,7 @@ define actor TransportProbe as
 end
 
 pub async routine main(): void {
-  val server = http.listen("0.0.0.0", 5001, 128, 1024, 5000);
+  val server = http.listen("127.0.0.1", 5001, 128, 1024, 5000);
   val handler = http.handler("TransportProbe");
   while true {
     val request = await server.accept();
