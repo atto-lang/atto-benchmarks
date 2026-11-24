@@ -1,0 +1,17 @@
+name: SharkBench probe self-tests (host-only)
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe-self-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify Python correctness probe controls (not guest execution)
+        working-directory: benchmark/web/sharkbench
+        run: python3 -m unittest -v test_probe

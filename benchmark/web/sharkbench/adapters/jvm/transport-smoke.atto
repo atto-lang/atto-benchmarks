@@ -1,0 +1,65 @@
+// Source candidate: real guest HTTP transport only; NOT a SharkBench adapter.
+// Do not time or register this program as a benchmark.
+// Uses the existing claim/dispatch and loopback client API rather than
+// the proposed Fetch-style unary actor result.
+define actor TransportProbe as
+  receive(ActorMail<String> mail): void {
+    val exchange = http.claim(mail.value);
+    if exchange.method != "GET"; then
+      await exchange.respond(405, "text/plain", "GET required");
+      self.end();
+      return;
+    fi
+    if exchange.target != "/transport-smoke"; then
+      await exchange.respond(404, "text/plain", "not found");
+      self.end();
+      return;
+    fi
+    try {
+      val response = await http.request(
+        "GET",
+        "http://127.0.0.1:5002/element.json",
+        [("Accept", "application/json")]
+      );
+      if response.status != 200; then
+        await response.close();
+        await exchange.respond(502, "text/plain", "upstream status");
+      else
+        val body = response.take_body();
+        let int count = 0;
+        let bool oversized = false;
+        while true {
+          val chunk = await body.read_chunk(8192);
+          if chunk.size == 0; then break; fi
+          count = count + chunk.size;
+          if count > 131072; then
+            oversized = true;
+            break;
+          fi
+        }
+        await body.close();
+        if oversized || count == 0; then
+          await exchange.respond(502, "text/plain", "invalid upstream size");
+        else
+          await exchange.respond(200, "text/plain", "transport-only");
+        fi
+      fi
+    } catch (failure) {
+      if exchange.can_respond; then
+        await exchange.respond(502, "text/plain", "upstream failure");
+      fi
+    }
+    self.end();
+    return;
+  }
+end
+
+pub async routine main(): void {
+  val server = http.listen("0.0.0.0", 5001, 128, 1024, 5000);
+  val handler = http.handler("TransportProbe");
+  while true {
+    val request = await server.accept();
+    handler.dispatch(rt mut borrow request);
+  }
+  return;
+}
