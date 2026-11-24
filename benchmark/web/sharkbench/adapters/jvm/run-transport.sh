@@ -18,12 +18,16 @@ test "$(git -C "$compiler" rev-parse HEAD^{tree})" = "$tree"
 test -z "$(git -C "$compiler" status --porcelain --untracked-files=all)"
 echo "COMPILER_SHA=$expected COMPILER_TREE=$tree"
 java -version
+java -XshowSettings:properties -version 2>&1 | grep -Eq "^[[:space:]]*java.specification.version = 25$" || { echo "NOT_EXECUTED: JDK25 required" >&2; exit 69; }
+command -v mvn >/dev/null || { echo "NOT_EXECUTED: Maven required" >&2; exit 69; }
 mvn -version
 (
   cd "$compiler"
   mvn -B -ntp clean compile dependency:build-classpath -Dmdep.outputFile=target/sharkbench-classpath.txt
 )
 test -z "$(git -C "$compiler" status --porcelain --untracked-files=all)"
+test "$(git -C "$compiler" rev-parse HEAD)" = "$expected"
+test "$(git -C "$compiler" rev-parse HEAD^{tree})" = "$tree"
 test -s "$compiler/target/sharkbench-classpath.txt"
 classpath="$(cat "$compiler/target/sharkbench-classpath.txt")"
 python3 "$here/transport_probe.py" -- java -cp "$compiler/target/classes:$classpath" \
