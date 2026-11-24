@@ -11,7 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
+      - name: Verify exact PR head and tree
+        env:
+          EXPECTED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          test -z "$(git status --porcelain --untracked-files=all)"
+          git rev-parse HEAD HEAD^{tree}
       - name: Verify Python correctness probe controls (not guest execution)
         working-directory: benchmark/web/sharkbench
-        run: python3 -m unittest -v test_probe
+        run: |
+          python3 -m unittest -v test_probe
+          python3 -m py_compile adapters/jvm/transport_probe.py
+          bash -n adapters/jvm/run-transport.sh
