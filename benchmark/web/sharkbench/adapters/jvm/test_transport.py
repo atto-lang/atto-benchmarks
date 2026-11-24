@@ -88,6 +88,7 @@ class TransportControls(unittest.TestCase):
 
     def test_occupied_port_rejected(self):
         with socket.socket() as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind(("127.0.0.1", 5001))
             sock.listen()
             with self.assertRaises(OSError):
