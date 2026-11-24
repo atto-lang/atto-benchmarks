@@ -23,6 +23,10 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
 
+class FixtureServer(http.server.ThreadingHTTPServer):
+    request_queue_size = 32
+
+
 class Fixture(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         with self.server.lock:
@@ -64,8 +68,9 @@ def run(command):
     # Refuse to test an unrelated server already occupying the app port.
     import socket
     with socket.socket() as reservation:
+        reservation.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         reservation.bind(("127.0.0.1", 5001))
-    with http.server.ThreadingHTTPServer(("127.0.0.1", 5002), Fixture) as source:
+    with FixtureServer(("127.0.0.1", 5002), Fixture) as source:
         source.lock = threading.Lock()
         source.counts = collections.Counter()
         source.reply = (200, b'{"He":{"name":"Helium","number":2,"group":18}}')
