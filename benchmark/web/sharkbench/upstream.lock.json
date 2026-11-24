@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "upstream": {
+    "repository": "https://github.com/sharkbench/sharkbench",
+    "commit": "3e1d4b1c0dbe820da2f1cf4a620bf00be8ba2b3f",
+    "tree": "2884ce898ee9a0ce3d2650a9de9b26cd267b340b",
+    "runner": "src/benchmark/web/mod.rs",
+    "cpu_quota": 1,
+    "default_concurrency": 32,
+    "warmup_iterations": 1,
+    "extended_warmup_iterations": 5,
+    "timed_iterations": 5,
+    "timed_iteration_seconds": 15,
+    "validate_iterations": 1,
+    "validate_seconds": 2
+  },
+  "compiler_audit": {
+    "repository": "atto-lang/atto-source.java",
+    "commit": "b02efee4c036557278284ca444655e19cd0adc64",
+    "tree": "018f14281cb7af30c862c0dd25e1edc364148ca0",
+    "status": "source_inspected_not_executed"
+  },
+  "common_source_audit": {
+    "repository": "atto-lang/atto-common-source",
+    "commit": "dc173d74194038b668f2c12756fa60a0c387eda4",
+    "tree": "d6aed5f606975a612daca3bd19e5249db98f201d",
+    "status": "design_inspected_not_executed"
+  }
+}
