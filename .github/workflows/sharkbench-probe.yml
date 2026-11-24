@@ -27,3 +27,4 @@ jobs:
           python3 -m unittest -v test_probe
           python3 -m py_compile adapters/jvm/transport_probe.py
           bash -n adapters/jvm/run-transport.sh
+          (cd adapters/jvm && python3 -m unittest -v test_transport)
