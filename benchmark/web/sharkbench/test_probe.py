@@ -39,6 +39,15 @@ class ProbeTests(unittest.TestCase):
                 if mode == "wrong":
                     payload = {"wrong": True}
                 body = json.dumps(payload).encode()
+                if mode == "duplicate":
+                    body = b'{"name":"bad", "name":"Helium"}'
+                if mode == "oversized":
+                    body = b" " * (probe.MAX_RESPONSE_BYTES + 1)
+                if mode == "redirect":
+                    self.send_response(302)
+                    self.send_header("Location", "http://127.0.0.1:1/")
+                    self.end_headers()
+                    return
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(body)))
@@ -56,6 +65,27 @@ class ProbeTests(unittest.TestCase):
             finally:
                 app.shutdown()
                 worker.join()
+
+    def test_duplicate_rejected(self):
+        with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
+            self.exercise("duplicate")
+
+    def test_oversize_rejected(self):
+        with self.assertRaisesRegex(ValueError, "exceeds limit"):
+            self.exercise("oversized")
+
+    def test_redirect_rejected(self):
+        with self.assertRaisesRegex(AssertionError, "unexpected redirect"):
+            self.exercise("redirect")
+
+    def test_strict_json_invalid(self):
+        for raw in (b'{"x":NaN}', b'{"x":Infinity}', b'{"x":"\xff"}'):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                probe.strict_json(raw)
+
+    def test_external_target_rejected(self):
+        with self.assertRaisesRegex(ValueError, "literal loopback"):
+            probe.run("http://example.invalid", 5002)
 
     def test_live_io(self):
         self.exercise("live")
