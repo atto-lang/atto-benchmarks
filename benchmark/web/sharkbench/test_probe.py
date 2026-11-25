@@ -83,6 +83,15 @@ class ProbeTests(unittest.TestCase):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
                 probe.strict_json(raw)
 
+    def test_escaped_invalid_scalars_and_overflow_rejected(self):
+        for raw in (b'{"x":"\ud800"}', b'{"\udfff":1}', b'{"x":1e999}'):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                probe.strict_json(raw)
+
+    def test_valid_unicode_scalars(self):
+        self.assertEqual(probe.strict_json(b'{"x":"\ud83d\ude00"}'), {"x": "😀"})
+        self.assertEqual(probe.strict_json('{"x":"é😀"}'.encode()), {"x": "é😀"})
+
     def test_external_target_rejected(self):
         with self.assertRaisesRegex(ValueError, "literal loopback"):
             probe.run("http://example.invalid", 5002)
