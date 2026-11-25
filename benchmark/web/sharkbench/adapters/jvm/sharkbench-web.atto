@@ -34,17 +34,16 @@ define actor SharkBenchWorker as
       return;
     fi
     val symbol = query.get(1);
-    // Actor-local validation: no implicit capture of a file/module callable.
-    val symbol_codes = symbol.codepoints();
-    let bool symbol_valid = true;
-    if symbol_codes.size < 1 || symbol_codes.size > 3; then
-      symbol_valid = false;
-    else
-      if symbol_codes.get(0) < 65 || symbol_codes.get(0) > 90; then
+    // Keep validation inside the actor's lexical boundary. No implicit
+    // access to file-scope functions and no change to actor isolation.
+    val codes = symbol.codepoints();
+    let bool symbol_valid = codes.size >= 1 && codes.size <= 3;
+    if symbol_valid; then
+      if codes.get(0) < 65 || codes.get(0) > 90; then
         symbol_valid = false;
       fi
-      for (let int i = 1; i < symbol_codes.size; i = i + 1) {
-        if symbol_codes.get(i) < 97 || symbol_codes.get(i) > 122; then
+      for (let int i = 1; i < codes.size; i = i + 1) {
+        if codes.get(i) < 97 || codes.get(i) > 122; then
           symbol_valid = false;
           break;
         fi
