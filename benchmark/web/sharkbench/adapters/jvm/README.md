@@ -13,3 +13,26 @@ Prior revision host-only control (before hardening): Python compiled the probe a
 ## JSON gate (canonical compiler integration)
 
 Existing Java PRs #1118, #1124, #1125, #1126, #1133 and #1134 are the relevant ownership, parse, stringify and typed-decode stack. #1133 head 6fb8934ebd058f1d2e6891695e91c337dd637979; #1134 head a29651ec7d26d1aa0b947bc27f119852ec09e466. #1134 explicitly rejects Map decode in its checker/evaluator. #1787 validates JSON text, not full dynamic lookup. A complete solution must admit dynamic symbol keys through canonical JsonValue object lookup or checked Map<String, record{...}> and Map<String,List<int>> decoding, plus strict UTF-8 conversion from the bounded outbound body. Do not introduce a second JSON or host Map implementation. Verify exact-base integrated compiler stack with actual guest execution including malformed JSON, duplicate keys, arbitrary keys, missing keys, wrong types, quota, ownership and AOT negatives. Then implement both benchmark handlers and run check_contract.py and official upstream validation. No benchmark.yaml or Docker score adapter until these gates pass.
+
+
+## Two-route guest candidate
+
+`sharkbench-web.atto` is the initial all-Atto workload candidate. It requires an
+integrated, independently verified compiler containing HTTP repairs (Java #1809),
+strict UTF-8 (#1812) and allocator JSON guest bindings (#1814). Those branches
+are not yet a single tested compiler tree. Do not change the existing transport
+lock to an arbitrary unverified candidate or publish a benchmark score.
+
+The candidate uses fixed loopback upstream URLs, a 128 KiB streamed input limit,
+explicit close in finally, strict UTF-8 after complete body assembly, dynamic
+symbol lookup, scalar validation for element fields, bounded shell-array checks
+and canonical JSON serialization. The listener binds loopback for local
+admission. Docker packaging must separately review external listener scope.
+Only canonical ASCII symbol query spelling is admitted in this candidate;
+percent-encoded/ambiguous query forms are rejected. Error statuses and the
+32-shell provisional bound are internal admission policy, not upstream score
+claims. The JSON lookup implementation presently copies through a bounded codec;
+optimize only after correctness and resource limits are verified.
+
+**NOT_EXECUTED:** guest source compilation, concurrent workload, negative HTTP
+fixtures, cancellation/cleanup under load, AOT and official SharkBench scoring.
