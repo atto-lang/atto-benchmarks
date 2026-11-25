@@ -1,13 +1,13 @@
 language: AttoLang
 mode: GraalVM JVM 25.3.4.1
 version:
-  - '62b35cd'
+  - '963cfa5'
 version_regex: {}
 framework: AttoLang HTTP
 framework_stdlib: true
 framework_website: https://github.com/atto-lang/atto-source.java
 framework_flavor: Actors
 framework_version:
-  - '62b35cd'
+  - '963cfa5'
 framework_version_regex: {}
 extended_warmup: true

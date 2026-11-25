@@ -86,3 +86,9 @@ Java integration head `7f2a97f35b1c5e2ec9bce2c6743103cae338373c`, root tree `b23
 Run 45679268024 built and admitted the locked Docker candidate, but the original upstream validation excluded all 32 connections with zero successful requests. No official result. The upstream corpus is 8,597/3,304 bytes; the existing byte-at-a-time guest copy is a potential cost, not a proven cause. `diagnose-official-corpus.py` exercises a fresh one-CPU container using exact upstream JSON with a 32-request cold batch and every symbol on both routes, reporting statuses, latency and exact upstream counts. Its timing is diagnostic only. The original upstream runner remains unmodified and must pass independently.
 
 Resource retirement run 45679889703 passed 75/75 additional regressions on the unchanged compiler tree; it does not prove workload-wide physical reclamation counters.
+
+## Immutable JSON optimization candidate
+
+The exact full-corpus diagnostic on run 45683013359 passed all 32 cold requests and all 238 corpus requests, with 270 actual upstream fetches. Only four cold requests finished under two seconds; original upstream validation still failed. Both prior locked stage manifest hashes were identical (`4c809f51f24c33b4b620ecbf9f0e6bd9b8a27504065d1c6b5652bc0829128c32`), supporting repeat-stage equality on the two historical builds. That is not a JDK artifact provenance certificate.
+
+Compiler PR #1839 has concurrently merged into integration PR #1816. Candidate `963cfa53dd774facfeeebc3f0729f6d90793a8da` tree `b6160071e26e0e512e7667bfbb2fc761dd856bfe` freezes freshly parsed guest JSON graphs and avoids repeated full-root validation on immutable lookups. This revision is pinned for a new integrated CI and cold-corpus run, not yet admitted. Historical compiler and Docker receipts are retained separately, and all guest/probe blobs and dependency hashes remain unchanged. No workload caching or runner duration changes.

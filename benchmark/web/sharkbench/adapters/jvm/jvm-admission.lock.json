@@ -1,14 +1,12 @@
 {
   "schema": 1,
-  "scope": "verified synthetic JVM admission; no official timing or merge approval",
+  "scope": "candidate with immutable JSON optimization; historical baseline receipts retained; no score or merge approval",
   "compiler": {
     "repository": "atto-lang/atto-source.java",
-    "commit": "62b35cd6f565b5a3aa3d9f95e52a50d8982ba66a",
-    "tree": "59485bfee7679ac96635c48a1efc24b0c09324e3",
-    "ci_run": 45674783717,
-    "regression_job": 139419298746,
-    "native_http_job": 139419298678,
-    "workload_job": 139419297960
+    "commit": "963cfa53dd774facfeeebc3f0729f6d90793a8da",
+    "tree": "b6160071e26e0e512e7667bfbb2fc761dd856bfe",
+    "status": "candidate_pending_exact_tree_execution",
+    "optimization_pr": 1839
   },
   "blobs": {
     "adapters/jvm/sharkbench-web.atto": "095288d5e3487c3beac1f393fbe2576cc951e135",
@@ -112,5 +110,14 @@
         "sha256": "b1dd998f64f9acadc15966d9cd3d08074662677b3e390f0a38fcbf0bb4c72330"
       }
     ]
+  },
+  "previous_verified_compiler": {
+    "repository": "atto-lang/atto-source.java",
+    "commit": "62b35cd6f565b5a3aa3d9f95e52a50d8982ba66a",
+    "tree": "59485bfee7679ac96635c48a1efc24b0c09324e3",
+    "ci_run": 45674783717,
+    "regression_job": 139419298746,
+    "native_http_job": 139419298678,
+    "workload_job": 139419297960
   }
 }
