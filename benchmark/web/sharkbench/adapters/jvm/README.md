@@ -54,3 +54,9 @@ After both earlier probes pass and with port 5002 free, run `python3 -B benchmar
 ## Actor lexical-boundary repair
 
 On compiler head `36141de7b71eb03f27a568e34878e2b7ea55fce6` the executed integration run 45546689635 passed 122 compiler/runtime tests, but the actual application launch was rejected because an actor implicitly called file-scope `valid_symbol`. The workload now performs the same bounded ASCII validation directly in its receive body. This preserves actor isolation and keeps input validation before upstream I/O. The NativeHttpTest suite independently timed out. Neither the full workload nor scoring is admitted yet. The previous receipts are historical and not a new approved compiler lock.
+
+## Current exact-head CI and lifecycle self-tests
+
+Java integration head `7f2a97f35b1c5e2ec9bce2c6743103cae338373c`, root tree `b237804b8fa5804e262ed4ec79b77d81459460d5`, is executing three independent gates in https://github.com/canonical-cloud-test/monorepo-submodules-e2e/actions/runs/45665595766 . Public repository metadata and anonymous access were independently checked on the runner before exact head/tree verification; no private source was stored in the carrier. This is a pending candidate, not an approved lock or official score. Previous 122 regression passes apply only to the earlier compiler tree. Native HTTP now requires all 24 invocations.
+
+`test_lifecycle.py` adds separate host-only controls of the unchanged lifecycle probe: real stalled upstream and recovery, rejection of a canned response, rejection of incorrect timeout status. The Python control is explicitly not Atto execution. The compiler's active exact tree and pinned workload inputs are not changed by these self-tests.
