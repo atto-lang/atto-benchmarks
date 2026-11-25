@@ -13,16 +13,16 @@ fixtures="$compiler/tests/fixtures/sharkbench-admission"
 export ADMISSION_MARKER="$tmp/invoked" ADMISSION_BENCH="$bench" ADMISSION_COMPILER="$compiler"
 mkdir -p "$adapter" "$fixtures"
 cp "$here/run-admission.sh" "$adapter/run-admission.sh"
-for name in sharkbench-web.atto check_contract.py check_faults.py check_lifecycle.py; do
+for name in sharkbench-web.atto sharkbench-web-native.atto check_contract.py check_faults.py check_lifecycle.py; do
   source="$adapter/../../$name"
-  [[ "$name" != sharkbench-web.atto ]] || source="$adapter/$name"
+  [[ "$name" != sharkbench-web*.atto ]] || source="$adapter/$name"
   printf 'synthetic fixture %s\n' "$name" > "$source"
   cp "$source" "$fixtures/$name"
 done
 cat > "$fixtures/run.sh" <<'RUNNER'
 #!/usr/bin/env bash
 set -euo pipefail
-printf 'invoked\n' > "$ADMISSION_MARKER"
+printf '%s\n' "$1" > "$ADMISSION_MARKER"
 case "${ADMISSION_MODE:-ok}" in
   ok) ;;
   failure) exit 42 ;;
@@ -61,6 +61,14 @@ run_case() {
   printf 'PASS %s\n' "$name"
 }
 run_case valid yes 0 'PASS: local integrated correctness' ok "$compiler" "$chead" "$ctree"
+test "$(cat "$ADMISSION_MARKER")" = boxed
+run_case native yes 0 'PASS: local integrated correctness' ok "$compiler" "$chead" "$ctree" native
+test "$(cat "$ADMISSION_MARKER")" = native
+run_case invalid-variant no 1 'unknown workload variant' ok "$compiler" "$chead" "$ctree" bogus
+printf 'different\n' > "$fixtures/sharkbench-web-native.atto"
+git -C "$compiler" commit -qam mismatch-native
+run_case native-mismatch no 1 'fixture mismatch: sharkbench-web-native.atto' ok "$compiler" "$(git -C "$compiler" rev-parse HEAD)" "$(git -C "$compiler" rev-parse 'HEAD^{tree}')" native
+git -C "$compiler" reset --hard -q "$chead"
 run_case missing-arguments no 1 'usage:' ok
 run_case abbreviated-sha no 1 'full commit and tree SHAs required' ok "$compiler" "${chead:0:12}" "$ctree"
 run_case wrong-commit no 1 'compiler commit mismatch' ok "$compiler" "$zero" "$ctree"

@@ -78,3 +78,15 @@ Run `bash benchmark/web/sharkbench/adapters/jvm/test-admission.sh`. The 16 sourc
 ## Checked-field workload synchronization
 
 The exact benchmark-owned application blob `095288d5e3487c3beac1f393fbe2576cc951e135` (source commit `b5fd8a9ed8d79c00515ad57a267aa745ace35245`) checks missing fields before Option.unwrap; the fault probe blob `11f3f35ecb5d17871122c8ff9ccc67ad92904ca5` (source commit `4689b87c388fb66113f61987b454b94fda80f5e2`) labels the existing cases individually without weakening assertions. All four benchmark workload/probe blobs now match the lock at Java #1816 candidate `c7bc58815b42b2efd0c1ad0c71fb597231dc1b1c`, tree `f2d003ace1a87ee2f96100ffccc8898b9e4de5e3`. The [integrated CI run](https://github.com/atto-lang/atto-source.java/actions/runs/45672532074) was queued when inspected. This is a historical pinned candidate command, not scoring admission. No compiler source copied.
+
+## Verified integrated JVM candidate — 2026-11-25
+
+Supersedes historical NOT_EXECUTED entries above for the following exact revision only: compiler `81d73a6a25b29fe1121a4a3b92e992ec541965c6`, root tree `eff11eccb3f459f8e6b2724b546cf3b1513102b8`. [Executed receipt](https://github.com/atto-lang/atto-benchmarks/actions/runs/45690986159/job/139476047834): 153/153 targeted regressions, both variants 72 correctness and 23 fault probes each, socket lifecycle and isolated NativeHttp tests. Native guest blob `9d51478489dbfc7e3995db4e3fb2b15606b1b597`, boxed blob `095288d5e3487c3beac1f393fbe2576cc951e135`. Both are synthetic correctness-admitted, not score adapters.
+
+Run either variant on a clean compiler checkout of that exact revision:
+
+```sh
+bash benchmark/web/sharkbench/adapters/jvm/run-admission.sh /path/to/compiler 81d73a6a25b29fe1121a4a3b92e992ec541965c6 eff11eccb3f459f8e6b2724b546cf3b1513102b8 native
+```
+
+Use `boxed` for the original comparison. The wrapper verifies the chosen workload and all three probes byte-for-byte, then delegates to the real compiler runner. No official data or throughput score is admitted here.
