@@ -15,5 +15,102 @@
     "check_contract.py": "2f5514245444e5fc9f268f18bf73a5a09a58b3e2",
     "check_faults.py": "11f3f35ecb5d17871122c8ff9ccc67ad92904ca5",
     "check_lifecycle.py": "805b1318ce56495535f80699553abd09223118be"
+  },
+  "container_receipt": {
+    "run": 45676572400,
+    "job": 139425586584,
+    "benchmark_commit": "008d0fd95aac8f95ce74280689862105ff4be1bd",
+    "benchmark_tree": "7332e5dd215ffc212752a5d087e47f2ea4aa4101",
+    "image_id": "sha256:ef5f110d1b3130b795647a790a91d1b0af41d9cf0fa4d135aa7a82b991cc9807",
+    "base_image": "ubuntu@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b",
+    "graalvm_version": "25.3.4.1+1.1",
+    "java_build": "25.0.4.1+1-LTS-jvmci-25.3-b22",
+    "platform": "linux/amd64",
+    "ordered_dependencies": [
+      {
+        "name": "tomlj-1.1.1.jar",
+        "sha256": "383b7c66966c42ee4913ec977a7b6573631866bddc5318ec4a6215b688dd0d6c"
+      },
+      {
+        "name": "antlr4-runtime-4.11.1.jar",
+        "sha256": "e06c6553c1ccc14d36052ec4b0fc6f13b808cf957b5b1dc3f61bf401996ada59"
+      },
+      {
+        "name": "checker-qual-3.21.2.jar",
+        "sha256": "7e8554c902b9b839e61396cfe3a64c84ecabfb8eb652c410bfd8e4f5c1a8ece8"
+      },
+      {
+        "name": "truffle-api-25.3.4.1.jar",
+        "sha256": "f9efa18b1cb6c4e39862f5ac83a88ee4c9e31252c52c2ee5192c2a707cd9b27f"
+      },
+      {
+        "name": "collections-25.3.4.1.jar",
+        "sha256": "3d0d2287f0217e7e765a47d69681c0ac1bb4ef50d70c9440449e86045bbe158f"
+      },
+      {
+        "name": "jniutils-25.3.4.1.jar",
+        "sha256": "b1d78402c744e5022fcb19f620644ab38b834c024020f3570dadaaf9cbe77067"
+      },
+      {
+        "name": "truffle-runtime-25.3.4.1.jar",
+        "sha256": "d74ff0b8eb9a5fec4a571f78bc21750ee41dfd454877b8cce8b33641efd90ae3"
+      },
+      {
+        "name": "truffle-compiler-25.3.4.1.jar",
+        "sha256": "a422df88ffaabe4669b8b6e5d63f04f2a8152e5fe763b3bfbf3dc58d7e5dd41c"
+      },
+      {
+        "name": "polyglot-25.3.4.1.jar",
+        "sha256": "befec2cbfb6ca279a73ee20626718a917ab1d1a3970793698ddc11b4d41e0356"
+      },
+      {
+        "name": "nativeimage-25.3.4.1.jar",
+        "sha256": "a4315500775e98d16f083812bf5b8b664d84abad736da14ebbea5b38d7752b0f"
+      },
+      {
+        "name": "word-25.3.4.1.jar",
+        "sha256": "fe1c3723e27907789732ac9f3d639ba6055d459529cfcfbd96156e73911ee7b7"
+      },
+      {
+        "name": "truffle-enterprise-25.3.4.1.jar",
+        "sha256": "a070fa1bb5cff043b071db8e3c35f5b2ed208494edace448a37f03b44a726273"
+      },
+      {
+        "name": "nativebridge-25.3.4.1.jar",
+        "sha256": "6ac104859f9a735741bdcb0912231ee3abbc58df16a60508b154166993affc93"
+      },
+      {
+        "name": "junit-jupiter-5.11.4.jar",
+        "sha256": "aa880e4afba87d447357e4c1fc098c5cb1d200cb9403496c00d3b35a5bd0e8db"
+      },
+      {
+        "name": "junit-jupiter-api-5.11.4.jar",
+        "sha256": "ab83ef9e51ac4597d59d26b4b58812129550e2f579a404c8af7d09f5ce5b4293"
+      },
+      {
+        "name": "opentest4j-1.3.0.jar",
+        "sha256": "48e2df636cab6563ced64dcdff8abb2355627cb236ef0bf37598682ddf742f1b"
+      },
+      {
+        "name": "junit-platform-commons-1.11.4.jar",
+        "sha256": "9edd969b0d0670c54105bc91ae79bd1c6f503e12115faba82073b84c86bbc334"
+      },
+      {
+        "name": "apiguardian-api-1.1.2.jar",
+        "sha256": "b509448ac506d607319f182537f0b35d71007582ec741832a1f111e5b5b70b38"
+      },
+      {
+        "name": "junit-jupiter-params-5.11.4.jar",
+        "sha256": "02a6e015de7ce94ac7f256e7fa05b8091dea861fe79a555a7993313d0f6c7d96"
+      },
+      {
+        "name": "junit-jupiter-engine-5.11.4.jar",
+        "sha256": "cdf8ac59f3fad774ca738ad03890950eeb91833ef0e8908753177edd26f1581c"
+      },
+      {
+        "name": "junit-platform-engine-1.11.4.jar",
+        "sha256": "b1dd998f64f9acadc15966d9cd3d08074662677b3e390f0a38fcbf0bb4c72330"
+      }
+    ]
   }
 }

@@ -10,6 +10,12 @@ On an authorized Linux host with Docker, GraalVM JDK25 and Maven, provision the 
 
 This stages the compiler classes, ordered dependency jars, checked library, installed JDK and exact guest source into a disposable runtime context. The script resolves Ubuntu 24.04 to an immutable base digest at execution, records the image ID and dependency SHA256s, uses host networking and one CPU, runs non-root/read-only with only a temporary writable directory, and executes all three original probes. It removes the local candidate container and image. The pinned upstream runner also uses host networking, so no listener expansion is necessary. This is a candidate packaging workflow; Docker execution is not yet verified, a fully locked base/runtime/dependency manifest and official benchmark.yaml are not yet admitted, and no score is reported.
 
+## Container execution receipt and locked upstream-style context
+
+[Run 45676572400](https://github.com/canonical-cloud-test/monorepo-submodules-e2e/actions/runs/45676572400) passed 14 host-only controls, 72 actual container correctness probes, 23 fault probes and socket lifecycle. This is a synthetic correctness result, not a benchmark score. The exact Ubuntu digest, Linux x86-64 GraalVM version/build and all 21 ordered classpath jar hashes are now enforced using that run's receipt. The new staging manifest records actual file hashes, modes and symlink targets; a repeat-build comparison of compiled classes and the JDK is still required before claiming bitwise reproducibility.
+
+To export an already locally admitted context, supply a new directory as a second argument to the script. Use a disposable checkout of the pinned upstream harness, and export to `benchmark/web/atto/graalvm-25` within it. This creates an upstream-style `benchmark.yaml` with one exact revision and extended warmup (5 iterations); no version mutation, concurrency override or language version fabrication. Validate the upstream copy/build and official source behavior separately using `cargo run --release -- --web --only atto/graalvm-25 --validate`. Do not commit the generated JDK, binaries or dependencies or distribute them without license review. Upstream validation remains unexecuted; no public score.
+
 ## Historical development notes
 
 # JVM admission (not a benchmark)
