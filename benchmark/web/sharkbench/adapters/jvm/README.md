@@ -19,8 +19,7 @@ Existing Java PRs #1118, #1124, #1125, #1126, #1133 and #1134 are the relevant o
 
 `sharkbench-web.atto` is the initial all-Atto workload candidate. It requires an
 integrated, independently verified compiler containing HTTP repairs (Java #1809),
-strict UTF-8 (#1812) and allocator JSON guest bindings (#1814). Those branches
-are not yet a single tested compiler tree. Do not change the existing transport
+strict UTF-8 (#1812) and allocator JSON guest bindings (#1814). Those branches are combined in Java integration PR #1816, but the resulting compiler tree is not yet execution-verified. Do not change the existing transport
 lock to an arbitrary unverified candidate or publish a benchmark score.
 
 The candidate uses fixed loopback upstream URLs, a 128 KiB streamed input limit,
@@ -31,8 +30,17 @@ admission. Docker packaging must separately review external listener scope.
 Only canonical ASCII symbol query spelling is admitted in this candidate;
 percent-encoded/ambiguous query forms are rejected. Error statuses and the
 32-shell provisional bound are internal admission policy, not upstream score
-claims. The JSON lookup implementation presently copies through a bounded codec;
-optimize only after correctness and resource limits are verified.
+claims. The integrated candidate now uses direct owned subtree copying with count-only canonical wire accounting; the previous 1 MiB snapshot budget and parser limits remain in force. Performance and compiler execution are unverified.
 
 **NOT_EXECUTED:** guest source compilation, concurrent workload, negative HTTP
 fixtures, cancellation/cleanup under load, AOT and official SharkBench scoring.
+
+## Integrated admission candidate (not an approved compiler lock)
+
+- Java integration PR: https://github.com/atto-lang/atto-source.java/pull/1816
+- Candidate compiler head: `237b6c3c420c8834b6003f66674d172ec119bb7c`
+- Candidate root tree: `6f718b331cdd0516e450fb30852fbc9f850d795e`
+- The original pinned guest application and 72-request probe remain unchanged.
+- Run the separate 23-case negative/recovery probe with `python3 -B benchmark/web/sharkbench/check_faults.py` after the positive probe exits, with the guest still running and port 5002 free. This is byte-identical to compiler fixture blob `7dd3671428f87aff533444b0e5a76e99b729c74c`.
+- Direct-copy regression tests cover previous wire round-trip equivalence, immutable scalar reuse, independent container ownership, parser depth/token limits, escaped and multibyte wire quotas, and rejection of host numeric subclasses.
+- No executed JDK25 guest results yet; no change to the accepted compiler lock, Docker or official score admission. Do not transfer compiler source across organizations without independent authorization.
