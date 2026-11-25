@@ -50,3 +50,5 @@ Record upstream harness commit, application/compiler/library commit and tree SHA
 - check_contract.py — initial correctness-only probe
 
 References: https://sharkbench.dev/web and https://github.com/sharkbench/sharkbench (Apache-2.0 upstream; retain notices if copying upstream code).
+
+The [upstream Rust/Axum baseline entrypoint](baselines/rust/README.md) prepares fresh candidate receipts on a dedicated host. No comparative score yet.
