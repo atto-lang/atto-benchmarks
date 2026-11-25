@@ -1,0 +1,70 @@
+name: Exact public compiler microbenchmark execution
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/public-compiler-microbench.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - kind: guest
+            head: f5e2444d80ff4ede9c93a13d7256d717849f4775
+            tree: 83bb5784532c51aa462d860bbad4e3bc6a34f205
+          - kind: jmh
+            head: 363d7ed4010aab98e890947c6f011f800ed5694d
+            tree: 43e411226fe4f2cf8b0ec9024883229c9118dcee
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Credential-free exact public source checkout
+        env:
+          HEAD_SHA: ${{ matrix.head }}
+          TREE_SHA: ${{ matrix.tree }}
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          git init compiler
+          git -C compiler -c credential.helper= fetch --no-tags --depth=1 https://github.com/atto-lang/atto-source.java.git "$HEAD_SHA"
+          git -C compiler checkout --detach FETCH_HEAD
+          test "$(git -C compiler rev-parse HEAD)" = "$HEAD_SHA"
+          test "$(git -C compiler rev-parse 'HEAD^{tree}')" = "$TREE_SHA"
+          test -z "$(git -C compiler status --porcelain --untracked-files=all)"
+          git -C compiler rev-parse HEAD HEAD^{tree}
+      - uses: graalvm/setup-graalvm@27b360dbb857524eaf0b4c4cef364d38e5b4f173
+        with:
+          version: "25.3"
+          java-version: "25"
+          distribution: graalvm
+      - name: Run actual Atto checksum and timing gates
+        if: matrix.kind == 'guest'
+        working-directory: compiler
+        env:
+          HEAD_SHA: ${{ matrix.head }}
+          TREE_SHA: ${{ matrix.tree }}
+        run: |
+          set -euo pipefail
+          python3 -B tests/fixtures/sharkbench-microbench/test-parse-fork.py
+          bash tests/fixtures/sharkbench-microbench/run.sh
+          bash tests/fixtures/sharkbench-microbench/run-timed.sh "$HEAD_SHA" "$TREE_SHA" "$RUNNER_TEMP/atto-timed"
+          cat "$RUNNER_TEMP/atto-timed/identity.txt" "$RUNNER_TEMP/atto-timed/"*.json
+      - name: Execute host JMH smoke (not guest throughput)
+        if: matrix.kind == 'jmh'
+        working-directory: compiler
+        run: |
+          set -euo pipefail
+          bash benchmarks/jmh/run.sh '.*json.*' -p entries=16 -wi 0 -i 1 -r 100ms -f 1
+          bash benchmarks/jmh/run.sh '.*(utf8|Bytes|boxedList).*' -p size=1024 -p chunkSize=256 -wi 0 -i 1 -r 100ms -f 1
+      - name: Verify unchanged source identity
+        working-directory: compiler
+        env:
+          HEAD_SHA: ${{ matrix.head }}
+          TREE_SHA: ${{ matrix.tree }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$TREE_SHA"
+          test -z "$(git status --porcelain --untracked-files=all)"
