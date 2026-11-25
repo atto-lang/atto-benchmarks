@@ -1,0 +1,27 @@
+name: Rust baseline receipt self-tests (source-free)
+on:
+  pull_request:
+    paths:
+      - 'benchmark/web/sharkbench/baselines/rust/**'
+      - '.github/workflows/rust-baseline-receipt.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  controls:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify exact source and validate receipt controls
+        env:
+          EXPECTED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          git rev-parse HEAD HEAD^{tree}
+          bash -n benchmark/web/sharkbench/baselines/rust/run.sh
+          bash benchmark/web/sharkbench/baselines/rust/test-row.sh
