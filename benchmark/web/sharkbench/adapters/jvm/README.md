@@ -56,3 +56,13 @@ After both earlier probes pass and with port 5002 free, run `python3 -B benchmar
 The actor-local symbol validation candidate is synchronized to benchmark-owned source commit `d546d81dec7aaf209f619943d2368f9212c0b10f`, workload blob `85d33dae2ea2021fbfdf6e6e87311adb96e1ff28`, byte-identical to the fixture on Java #1816 head `7f2a97f35b1c5e2ec9bce2c6743103cae338373c`, compiler root tree `b237804b8fa5804e262ed4ec79b77d81459460d5`. The previous PR #5 spelling was semantically similar but a different blob; it could not inherit this fixture's evidence. The three correctness probe blobs also match the compiler fixture lock. No new compiler export is required.
 
 Separate focused Java gates now executed successfully: [strict UTF-8 guest tests](https://github.com/atto-lang/atto-source.java/actions/runs/45518973442) and [canonical JSON runtime and linked guest tests](https://github.com/atto-lang/atto-source.java/actions/runs/45547521440). Component PRs #1812 and #1814 are merged. These receipts do not attest the combined application. [Integrated run 45660512640](https://github.com/atto-lang/atto-source.java/actions/runs/45660512640) was queued with no executed jobs at this checkpoint. Java #1816 is not mergeable against current main; its integration-specific changes need semantic forward-port after the candidate test results. No performance score, native image or approved compiler lock yet.
+
+### Local integrated correctness entrypoint
+
+On an authorized host with separate clean checkouts, run:
+
+```sh
+bash benchmark/web/sharkbench/adapters/jvm/run-admission.sh /path/to/atto-source.java 7f2a97f35b1c5e2ec9bce2c6743103cae338373c b237804b8fa5804e262ed4ec79b77d81459460d5
+```
+
+This wrapper verifies the explicit compiler commit/root tree, both clean worktrees, and byte equality of all four workload/probe fixtures before delegating to the compiler's integrated runner. It rechecks identities afterward. The example pins a candidate, not an approved scoring compiler. Local wrapper-only tests (mock runner, no guest): valid identity and matching fixtures passed; wrong tree and committed fixture mismatch rejected. No timing or private source copying. Script blob `704007d9ab6ec2f04738d5818314254c725711c3`.
