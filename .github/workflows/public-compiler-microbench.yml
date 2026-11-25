@@ -13,11 +13,11 @@ jobs:
       matrix:
         include:
           - kind: guest
-            head: f48b6e9a293bceb0a295c345c7ea6c9fcb57b027
-            tree: 92f0a2c0f066cc9b6c260347f925a7aad1d75015
+            head: f5e2444d80ff4ede9c93a13d7256d717849f4775
+            tree: 83bb5784532c51aa462d860bbad4e3bc6a34f205
           - kind: jmh
-            head: bf6810895d7a41825438c7fd1b7069eccb4b583b
-            tree: a3e3b418c3286e44f67bb1d55a7706d347c32a4c
+            head: 363d7ed4010aab98e890947c6f011f800ed5694d
+            tree: 43e411226fe4f2cf8b0ec9024883229c9118dcee
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
