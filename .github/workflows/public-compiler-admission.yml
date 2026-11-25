@@ -1,0 +1,50 @@
+name: Public compiler exact-tree SharkBench admission
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/public-compiler-admission.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compiler:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Fetch pinned public compiler without credentials
+        env:
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          git init compiler
+          git -C compiler -c credential.helper= fetch --no-tags --depth=1 https://github.com/atto-lang/atto-source.java.git 81d73a6a25b29fe1121a4a3b92e992ec541965c6
+          git -C compiler checkout --detach FETCH_HEAD
+          test "$(git -C compiler rev-parse HEAD)" = "81d73a6a25b29fe1121a4a3b92e992ec541965c6"
+          test "$(git -C compiler rev-parse 'HEAD^{tree}')" = "eff11eccb3f459f8e6b2724b546cf3b1513102b8"
+          test -z "$(git -C compiler status --porcelain --untracked-files=all)"
+          git -C compiler rev-parse HEAD HEAD^{tree}
+      - uses: graalvm/setup-graalvm@27b360dbb857524eaf0b4c4cef364d38e5b4f173
+        with:
+          version: "25.3"
+          java-version: "25"
+          distribution: graalvm
+      - name: Compile and execute transport, Bytes, JSON and guest regression tests
+        working-directory: compiler
+        run: |
+          set -euo pipefail
+          java -version
+          bash tests/fixtures/sharkbench-admission/maven-retry.sh -B -ntp -Dtest=OutboundHttpBodyPipeTest,OutboundHttpRequestGuestTest,BoundedByteAccumulatorTest,OresBytesBinaryCodecTest,OresBytesNioResp2Test,AttoBytesV1GuestTest,AttoBytesCodecGuestTest,AttoOwnedBytesNioGuestTest,AllocJsonTextTest,OresJsonValueTest,OresKeyedMapTest,OresKeyedMapLookupOptionTest,CanonicalJsonGuestTest,StringTransformTest,Utf8StringAbiTest,SharkBenchTransportGuestTest -Dsurefire.failIfNoSpecifiedTests=true test
+      - name: Execute identical correctness, fault and lifecycle probes for both guest variants
+        working-directory: compiler
+        run: |
+          set -euo pipefail
+          bash tests/fixtures/sharkbench-admission/run.sh boxed
+          bash tests/fixtures/sharkbench-admission/run.sh native
+          test "$(git rev-parse HEAD)" = "81d73a6a25b29fe1121a4a3b92e992ec541965c6"
+          test "$(git rev-parse 'HEAD^{tree}')" = "eff11eccb3f459f8e6b2724b546cf3b1513102b8"
+          test -z "$(git status --porcelain --untracked-files=all)"
+          echo EXACT_PUBLIC_COMPILER_GUEST_ADMISSION_OK
+      - name: Execute separately bounded inbound NativeHttp regression suite
+        working-directory: compiler
+        run: bash tests/fixtures/sharkbench-admission/run-native-http.sh
+
