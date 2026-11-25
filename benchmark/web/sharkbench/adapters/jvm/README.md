@@ -62,7 +62,11 @@ Separate focused Java gates now executed successfully: [strict UTF-8 guest tests
 On an authorized host with separate clean checkouts, run:
 
 ```sh
-bash benchmark/web/sharkbench/adapters/jvm/run-admission.sh /path/to/atto-source.java 7f2a97f35b1c5e2ec9bce2c6743103cae338373c b237804b8fa5804e262ed4ec79b77d81459460d5
+bash benchmark/web/sharkbench/adapters/jvm/run-admission.sh /path/to/atto-source.java 271015d6c1ab10132f5285c82db2aa56dd47928a 11fad1c5b370e5874401434873c978666ebf7018
 ```
 
 This wrapper verifies the explicit compiler commit/root tree, both clean worktrees, and byte equality of all four workload/probe fixtures before delegating to the compiler's integrated runner. It rechecks identities afterward. The example pins a candidate, not an approved scoring compiler. Local wrapper-only tests (mock runner, no guest): valid identity and matching fixtures passed; wrong tree and committed fixture mismatch rejected. No timing or private source copying. Script blob `704007d9ab6ec2f04738d5818314254c725711c3`.
+
+## Current-main integration checkpoint — 2026-11-25
+
+Java #1816 now includes main `9a5d745b164c300ddffbad2f9cabe7b699f26b21` as a merge parent. Candidate commit `271015d6c1ab10132f5285c82db2aa56dd47928a`, tree `11fad1c5b370e5874401434873c978666ebf7018`, is zero commits behind that main snapshot. All 3,824 resulting file blobs were verified against the expected combined tree. The 19 changed paths retain main's evaluator/ownership updates and add only the audited integration-specific TypeChecker changes, JSON direct-copy candidate and tests/fixtures. The application blob remains `85d33dae2ea2021fbfdf6e6e87311adb96e1ff28`. The new compiler head has no visible Actions run yet; prior run 45660512640 remains queued and cannot certify this tree. The command above is a candidate correctness command, not an approved compiler lock. Do not publish throughput or merge on this source-level evidence alone.
