@@ -17,10 +17,10 @@ jobs:
         run: |
           set -euo pipefail
           git init compiler
-          git -C compiler -c credential.helper= fetch --no-tags --depth=1 https://github.com/atto-lang/atto-source.java.git ec8bfd2860517e26e4ebcd4bd98f02d7282ac30a
+          git -C compiler -c credential.helper= fetch --no-tags --depth=1 https://github.com/atto-lang/atto-source.java.git 81d73a6a25b29fe1121a4a3b92e992ec541965c6
           git -C compiler checkout --detach FETCH_HEAD
-          test "$(git -C compiler rev-parse HEAD)" = "ec8bfd2860517e26e4ebcd4bd98f02d7282ac30a"
-          test "$(git -C compiler rev-parse 'HEAD^{tree}')" = "1c6e5cfa8a621189777b94688c99f9fbdd0ac8ae"
+          test "$(git -C compiler rev-parse HEAD)" = "81d73a6a25b29fe1121a4a3b92e992ec541965c6"
+          test "$(git -C compiler rev-parse 'HEAD^{tree}')" = "eff11eccb3f459f8e6b2724b546cf3b1513102b8"
           test -z "$(git -C compiler status --porcelain --untracked-files=all)"
           git -C compiler rev-parse HEAD HEAD^{tree}
       - uses: graalvm/setup-graalvm@27b360dbb857524eaf0b4c4cef364d38e5b4f173
@@ -40,7 +40,11 @@ jobs:
           set -euo pipefail
           bash tests/fixtures/sharkbench-admission/run.sh boxed
           bash tests/fixtures/sharkbench-admission/run.sh native
-          test "$(git rev-parse HEAD)" = "ec8bfd2860517e26e4ebcd4bd98f02d7282ac30a"
-          test "$(git rev-parse 'HEAD^{tree}')" = "1c6e5cfa8a621189777b94688c99f9fbdd0ac8ae"
+          test "$(git rev-parse HEAD)" = "81d73a6a25b29fe1121a4a3b92e992ec541965c6"
+          test "$(git rev-parse 'HEAD^{tree}')" = "eff11eccb3f459f8e6b2724b546cf3b1513102b8"
           test -z "$(git status --porcelain --untracked-files=all)"
           echo EXACT_PUBLIC_COMPILER_GUEST_ADMISSION_OK
+      - name: Execute separately bounded inbound NativeHttp regression suite
+        working-directory: compiler
+        run: bash tests/fixtures/sharkbench-admission/run-native-http.sh
+
