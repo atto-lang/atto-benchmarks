@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scope": "verified synthetic JVM admission; no official timing or merge approval",
+  "compiler": {
+    "repository": "atto-lang/atto-source.java",
+    "commit": "62b35cd6f565b5a3aa3d9f95e52a50d8982ba66a",
+    "tree": "59485bfee7679ac96635c48a1efc24b0c09324e3",
+    "ci_run": 45674783717,
+    "regression_job": 139419298746,
+    "native_http_job": 139419298678,
+    "workload_job": 139419297960
+  },
+  "blobs": {
+    "adapters/jvm/sharkbench-web.atto": "095288d5e3487c3beac1f393fbe2576cc951e135",
+    "check_contract.py": "2f5514245444e5fc9f268f18bf73a5a09a58b3e2",
+    "check_faults.py": "11f3f35ecb5d17871122c8ff9ccc67ad92904ca5",
+    "check_lifecycle.py": "805b1318ce56495535f80699553abd09223118be"
+  }
+}

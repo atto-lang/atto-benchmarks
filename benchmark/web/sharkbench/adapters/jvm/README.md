@@ -1,3 +1,17 @@
+# JVM admission and Docker candidate (not a timed benchmark)
+
+Current status: exact-tree compiler and all synthetic workload gates executed successfully in [run 45674783717](https://github.com/canonical-cloud-test/monorepo-submodules-e2e/actions/runs/45674783717). See `jvm-admission.lock.json` for the immutable candidate. 161 compiler tests, 25 native HTTP invocations, 72 correctness probes, 23 negative/recovery probes and the socket lifecycle scenario passed. Independent review and physical reclamation proof remain outstanding. Do not treat the historical transport lock as the integrated candidate lock.
+
+## Docker admission
+
+On an authorized Linux host with Docker, GraalVM JDK25 and Maven, provision the exact compiler checkout from the new lock. Run:
+
+    bash benchmark/web/sharkbench/adapters/jvm/run-docker-admission.sh /path/to/atto-source.java
+
+This stages the compiler classes, ordered dependency jars, checked library, installed JDK and exact guest source into a disposable runtime context. The script resolves Ubuntu 24.04 to an immutable base digest at execution, records the image ID and dependency SHA256s, uses host networking and one CPU, runs non-root/read-only with only a temporary writable directory, and executes all three original probes. It removes the local candidate container and image. The pinned upstream runner also uses host networking, so no listener expansion is necessary. This is a candidate packaging workflow; Docker execution is not yet verified, a fully locked base/runtime/dependency manifest and official benchmark.yaml are not yet admitted, and no score is reported.
+
+## Historical development notes
+
 # JVM admission (not a benchmark)
 
 On a machine authorized to access both private repositories, provision a clean checkout of atto-lang/atto-source.java at the compiler_audit commit in ../../upstream.lock.json. Use GraalVM JDK25, Maven and Python 3. Run:
