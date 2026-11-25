@@ -80,3 +80,9 @@ On compiler head `36141de7b71eb03f27a568e34878e2b7ea55fce6` the executed integra
 Java integration head `7f2a97f35b1c5e2ec9bce2c6743103cae338373c`, root tree `b237804b8fa5804e262ed4ec79b77d81459460d5`, is executing three independent gates in https://github.com/canonical-cloud-test/monorepo-submodules-e2e/actions/runs/45665595766 . Public repository metadata and anonymous access were independently checked on the runner before exact head/tree verification; no private source was stored in the carrier. This is a pending candidate, not an approved lock or official score. Previous 122 regression passes apply only to the earlier compiler tree. Native HTTP now requires all 24 invocations.
 
 `test_lifecycle.py` adds separate host-only controls of the unchanged lifecycle probe: real stalled upstream and recovery, rejection of a canned response, rejection of incorrect timeout status. The Python control is explicitly not Atto execution. The compiler's active exact tree and pinned workload inputs are not changed by these self-tests.
+
+## Upstream cold-start gap
+
+Run 45679268024 built and admitted the locked Docker candidate, but the original upstream validation excluded all 32 connections with zero successful requests. No official result. The upstream corpus is 8,597/3,304 bytes; the existing byte-at-a-time guest copy is a potential cost, not a proven cause. `diagnose-official-corpus.py` exercises a fresh one-CPU container using exact upstream JSON with a 32-request cold batch and every symbol on both routes, reporting statuses, latency and exact upstream counts. Its timing is diagnostic only. The original upstream runner remains unmodified and must pass independently.
+
+Resource retirement run 45679889703 passed 75/75 additional regressions on the unchanged compiler tree; it does not prove workload-wide physical reclamation counters.
