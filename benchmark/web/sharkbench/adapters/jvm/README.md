@@ -62,7 +62,7 @@ Separate focused Java gates now executed successfully: [strict UTF-8 guest tests
 On an authorized host with separate clean checkouts, run:
 
 ```sh
-bash benchmark/web/sharkbench/adapters/jvm/run-admission.sh /path/to/atto-source.java 271015d6c1ab10132f5285c82db2aa56dd47928a 11fad1c5b370e5874401434873c978666ebf7018
+bash benchmark/web/sharkbench/adapters/jvm/run-admission.sh /path/to/atto-source.java c7bc58815b42b2efd0c1ad0c71fb597231dc1b1c f2d003ace1a87ee2f96100ffccc8898b9e4de5e3
 ```
 
 This wrapper verifies the explicit compiler commit/root tree, both clean worktrees, and byte equality of all four workload/probe fixtures before delegating to the compiler's integrated runner. It rechecks identities afterward. The example pins a candidate, not an approved scoring compiler. Local wrapper-only tests (mock runner, no guest): valid identity and matching fixtures passed; wrong tree and committed fixture mismatch rejected. No timing or private source copying. Script blob `704007d9ab6ec2f04738d5818314254c725711c3`.
@@ -74,3 +74,7 @@ Java #1816 now includes main `9a5d745b164c300ddffbad2f9cabe7b699f26b21` as a mer
 ### Admission wrapper regression suite
 
 Run `bash benchmark/web/sharkbench/adapters/jvm/test-admission.sh`. The 16 source-free tests execute in two disposable Git repositories, including paths with spaces. They exercise success, malformed/mismatched identities, nested/same checkout, pre/post dirty worktree, committed fixture mismatch, missing fixture, runner failure and movement of either repository head. The negative cases assert whether the runner was invoked and prohibit a misleading PASS marker. All 16 passed locally against launcher blob `704007d9ab6ec2f04738d5818314254c725711c3`; test blob `62625d0450ac6e642e3a8477527c3ac1d002ced4`. CI now runs the same test; this is not guest execution or a score.
+
+## Checked-field workload synchronization
+
+The exact benchmark-owned application blob `095288d5e3487c3beac1f393fbe2576cc951e135` (source commit `b5fd8a9ed8d79c00515ad57a267aa745ace35245`) checks missing fields before Option.unwrap; the fault probe blob `11f3f35ecb5d17871122c8ff9ccc67ad92904ca5` (source commit `4689b87c388fb66113f61987b454b94fda80f5e2`) labels the existing cases individually without weakening assertions. All four benchmark workload/probe blobs now match the lock at Java #1816 candidate `c7bc58815b42b2efd0c1ad0c71fb597231dc1b1c`, tree `f2d003ace1a87ee2f96100ffccc8898b9e4de5e3`. The [integrated CI run](https://github.com/atto-lang/atto-source.java/actions/runs/45672532074) was queued when inspected. This is a historical pinned candidate command, not scoring admission. No compiler source copied.
