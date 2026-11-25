@@ -1,0 +1,54 @@
+name: Exact public paired JSON diagnostics
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/public-paired-json-diagnostics.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Verify exact public compiler source
+        env:
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          git init compiler
+          git -C compiler -c credential.helper= fetch --no-tags --depth=1 https://github.com/atto-lang/atto-source.java.git 38336ff9790faca1a95b38a6d6ad9cfb95cbbbef
+          git -C compiler checkout --detach FETCH_HEAD
+          test "$(git -C compiler rev-parse HEAD)" = "38336ff9790faca1a95b38a6d6ad9cfb95cbbbef"
+          test "$(git -C compiler rev-parse 'HEAD^{tree}')" = "f875f99e38a3495f04453d7f6f9d7662ea7bbe78"
+          git -C compiler rev-parse HEAD HEAD^{tree}
+      - uses: graalvm/setup-graalvm@27b360dbb857524eaf0b4c4cef364d38e5b4f173
+        with:
+          version: "25.3"
+          java-version: "25"
+          distribution: graalvm
+      - name: Paired diagnostic, same host and compiler, no official score
+        working-directory: compiler
+        run: |
+          set -euo pipefail
+          lscpu
+          bash benchmarks/jmh/run.sh '.*json.*' -p entries=16,128,512 -p representation=mutable,immutable -f 2 -wi 2 -w 250ms -i 3 -r 250ms -prof gc -rf json -rff "$RUNNER_TEMP/paired.json"
+          test -s "$RUNNER_TEMP/paired.json"
+          python3 - "$RUNNER_TEMP/paired.json" <<'PY'
+          import json, sys
+          rows = json.load(open(sys.argv[1]))
+          expected = {(m, str(n), rep) for m in ["jsonParse","jsonLookupHit","jsonLookupMiss","jsonStringify","jsonParseLookupStringify"] for n in [16,128,512] for rep in ["mutable","immutable"]}
+          seen = set()
+          for row in rows:
+              key = (row["benchmark"].rsplit(".",1)[-1], row["params"]["entries"], row["params"]["representation"])
+              assert key in expected and key not in seen
+              seen.add(key)
+              samples = row["primaryMetric"]["rawData"]
+              assert len(samples) == 2 and all(len(fork) == 3 and all(0 < x < float("inf") for x in fork) for fork in samples)
+              print(key, row["primaryMetric"]["score"], row["primaryMetric"]["scoreUnit"], "allocation", row["secondaryMetrics"]["gc.alloc.rate.norm"]["score"])
+          assert seen == expected
+          print("PAIRED_JSON_DIAGNOSTIC_OK", len(seen))
+          PY
+          test "$(git rev-parse HEAD)" = "38336ff9790faca1a95b38a6d6ad9cfb95cbbbef"
+          test "$(git rev-parse 'HEAD^{tree}')" = "f875f99e38a3495f04453d7f6f9d7662ea7bbe78"
+          test -z "$(git status --porcelain --untracked-files=all)"
