@@ -5,6 +5,7 @@ import collections
 import concurrent.futures
 import http.server
 import json
+import math
 import threading
 import urllib.parse
 import urllib.request
@@ -33,11 +34,34 @@ def reject_constant(value):
     raise ValueError(f"invalid JSON constant: {value}")
 
 
+def finite_float(value):
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError("nonfinite JSON number")
+    return parsed
+
+
+def validate_scalars(value):
+    # json.loads accepts escaped lone surrogates; strict Unicode does not.
+    if isinstance(value, str):
+        value.encode("utf-8", errors="strict")
+    elif isinstance(value, list):
+        for item in value:
+            validate_scalars(item)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            validate_scalars(key)
+            validate_scalars(item)
+
+
 def strict_json(raw):
     if len(raw) > MAX_RESPONSE_BYTES:
         raise ValueError("response exceeds limit")
-    return json.loads(raw.decode("utf-8", errors="strict"),
-                      object_pairs_hook=unique_object, parse_constant=reject_constant)
+    value = json.loads(raw.decode("utf-8", errors="strict"),
+                       object_pairs_hook=unique_object, parse_constant=reject_constant,
+                       parse_float=finite_float)
+    validate_scalars(value)
+    return value
 
 
 PREFIX = "/api/v1/periodic-table/"
@@ -57,7 +81,7 @@ class Fixture(http.server.BaseHTTPRequestHandler):
             data = self.server.data.get(self.path)
             if data is not None:
                 self.server.counts[self.path] += 1
-                body = json.dumps(data).encode("utf-8")
+                body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         if data is None:
             self.send_error(404)
             return
@@ -99,10 +123,15 @@ def run(base, source_port):
             for phase in (0, 1):
                 elements = {k: dict(v) for k, v in ELEMENTS.items()}
                 shells = {k: list(v) for k, v in SHELLS.items()}
+                symbols = SYMBOLS
                 if phase:
                     # Deliberately nonphysical sentinels catch stale/canned data.
-                    elements["He"]["name"] = "Helium probe changed"
+                    elements["He"]["name"] = "Hélium 😀 probe changed"
                     shells["He"] = [99]
+                    # New key appears only after startup; not an official element.
+                    elements["Xx"] = {"name": "Synthetic \\ sentinel", "number": 999, "group": 99}
+                    shells["Xx"] = [7, 11]
+                    symbols = (*SYMBOLS, "Xx")
                 with source.lock:
                     source.data = {"/element.json": elements, "/shells.json": shells}
                     source.counts.clear()
@@ -110,7 +139,7 @@ def run(base, source_port):
                     (route, symbol, elements[symbol] if route == "element" else {"shells": shells[symbol]})
                     for _ in range(4)
                     for route in ("element", "shells")
-                    for symbol in SYMBOLS
+                    for symbol in symbols
                 ]
                 with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
                     futures = [pool.submit(check_one, base, *job) for job in jobs]
@@ -118,14 +147,14 @@ def run(base, source_port):
                         future.result()
                 with source.lock:
                     counts = dict(source.counts)
-                expected = {"/element.json": 16, "/shells.json": 16}
+                expected = {"/element.json": 4 * len(symbols), "/shells.json": 4 * len(symbols)}
                 if counts != expected:
                     raise AssertionError(f"phase {phase}: expected one upstream fetch per request: {expected}, got {counts}")
-                print(f"phase {phase}: 32 correct responses; upstream counts {counts}")
+                print(f"phase {phase}: {len(jobs)} correct responses; upstream counts {counts}")
         finally:
             source.shutdown()
             worker.join()
-    print("PASS: 64 correctness probes; no performance measurement")
+    print("PASS: 72 correctness probes; no performance measurement")
 
 
 if __name__ == "__main__":
