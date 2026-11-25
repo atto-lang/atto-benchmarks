@@ -16,8 +16,8 @@ jobs:
             head: f48b6e9a293bceb0a295c345c7ea6c9fcb57b027
             tree: 92f0a2c0f066cc9b6c260347f925a7aad1d75015
           - kind: jmh
-            head: 6906d6d81ab743a4e14c45f027838ac059b5986a
-            tree: 099f61138606e89a3a8e7509d42edc47cde73172
+            head: bf6810895d7a41825438c7fd1b7069eccb4b583b
+            tree: a3e3b418c3286e44f67bb1d55a7706d347c32a4c
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
