@@ -1,0 +1,17 @@
+name: Actor messaging evidence gate
+on:
+  pull_request:
+    paths:
+      - 'actor-messaging/**'
+      - '.github/workflows/actor-messaging-evidence.yml'
+permissions:
+  contents: read
+jobs:
+  validator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 actor-messaging/validate.py --self-test
