@@ -28,3 +28,6 @@ jobs:
           python3 -m py_compile adapters/jvm/transport_probe.py
           bash -n adapters/jvm/run-transport.sh
           (cd adapters/jvm && python3 -m unittest -v test_transport)
+
+      - name: Verify admission launcher identity and failure controls (host-only)
+        run: bash benchmark/web/sharkbench/adapters/jvm/test-admission.sh

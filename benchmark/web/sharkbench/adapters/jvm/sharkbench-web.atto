@@ -3,16 +3,6 @@
 import class Json from "alloc/json";
 import class JsonValue from "alloc/json";
 
-fnc valid_symbol(string symbol): bool {
-  val codes = symbol.codepoints();
-  if codes.size < 1 || codes.size > 3; then return false; fi
-  if codes.get(0) < 65 || codes.get(0) > 90; then return false; fi
-  for (let int i = 1; i < codes.size; i = i + 1) {
-    if codes.get(i) < 97 || codes.get(i) > 122; then return false; fi
-  }
-  return true;
-}
-
 define actor SharkBenchWorker as
   receive(ActorMail<String> mail): void {
     val exchange = http.claim(mail.value);
@@ -44,7 +34,22 @@ define actor SharkBenchWorker as
       return;
     fi
     val symbol = query.get(1);
-    if !valid_symbol(symbol); then
+    // Keep validation inside the actor's lexical boundary. No implicit
+    // access to file-scope functions and no change to actor isolation.
+    val codes = symbol.codepoints();
+    let bool symbol_valid = codes.size >= 1 && codes.size <= 3;
+    if symbol_valid; then
+      if codes.get(0) < 65 || codes.get(0) > 90; then
+        symbol_valid = false;
+      fi
+      for (let int i = 1; i < codes.size; i = i + 1) {
+        if codes.get(i) < 97 || codes.get(i) > 122; then
+          symbol_valid = false;
+          break;
+        fi
+      }
+    fi
+    if !symbol_valid; then
       await exchange.respond(400, "text/plain", "invalid symbol");
       self.end();
       return;
@@ -90,17 +95,26 @@ define actor SharkBenchWorker as
           else
             val JsonValue selected = found.unwrap();
             if route == "/api/v1/periodic-table/element"; then
-              val JsonValue name = selected.get("name").unwrap();
-              val JsonValue number = selected.get("number").unwrap();
-              val JsonValue group = selected.get("group").unwrap();
-              if name.as_string().is_none() || number.as_int().is_none()
-                || group.as_int().is_none(); then
-                await exchange.respond(502, "text/plain", "invalid upstream shape");
+              // Missing fields are ordinary validation failures, never
+              // a panic-producing Option.unwrap() on untrusted data.
+              val name_field = selected.get("name");
+              val number_field = selected.get("number");
+              val group_field = selected.get("group");
+              if name_field.is_none() || number_field.is_none() || group_field.is_none(); then
+                await exchange.respond(502, "text/plain", "missing upstream field");
               else
-                val string encoded = "{\"name\":" + Json.stringify(rt borrow name)
-                  + ",\"number\":" + Json.stringify(rt borrow number)
-                  + ",\"group\":" + Json.stringify(rt borrow group) + "}";
-                await exchange.respond(200, "application/json", encoded);
+                val JsonValue name = name_field.unwrap();
+                val JsonValue number = number_field.unwrap();
+                val JsonValue group = group_field.unwrap();
+                if name.as_string().is_none() || number.as_int().is_none()
+                  || group.as_int().is_none(); then
+                  await exchange.respond(502, "text/plain", "invalid upstream shape");
+                else
+                  val string encoded = "{\"name\":" + Json.stringify(rt borrow name)
+                    + ",\"number\":" + Json.stringify(rt borrow number)
+                    + ",\"group\":" + Json.stringify(rt borrow group) + "}";
+                  await exchange.respond(200, "application/json", encoded);
+                fi
               fi
             else
               // Verify the selected array consists of bounded integral
